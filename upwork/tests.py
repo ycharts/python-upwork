@@ -23,9 +23,9 @@ from upwork.http import UPWORK_ERROR_CODE, UPWORK_ERROR_MESSAGE
 
 from nose.tools import eq_, ok_
 from mock import Mock, patch
-import urlparse
-import urllib2
-import httplib
+from urllib.parse import urlparse, parse_qs
+import urllib3
+import http.client
 
 try:
     import json
@@ -104,7 +104,7 @@ def test_client_urlopen():
         assert result.data == result_json, (result.data, result_json)
 
 
-def patched_urlopen_error(method, url, code=httplib.BAD_REQUEST,
+def patched_urlopen_error(method, url, code=http.client.BAD_REQUEST,
                           message=None, data=None, **kwargs):
     getheaders = Mock()
     getheaders.return_value = {UPWORK_ERROR_CODE: code,
@@ -114,36 +114,36 @@ def patched_urlopen_error(method, url, code=httplib.BAD_REQUEST,
 
 def patched_urlopen_incorrect_json(self, method, url, **kwargs):
     return patched_urlopen_error(
-        method, url, code=httplib.OK, data='Service temporarily unavailable')
+        method, url, code=http.client.OK, data='Service temporarily unavailable')
 
 
 def patched_urlopen_400(self, method, url, **kwargs):
     return patched_urlopen_error(
-        method, url, code=httplib.BAD_REQUEST,
+        method, url, code=http.client.BAD_REQUEST,
         message='Limit exceeded', **kwargs)
 
 
 def patched_urlopen_401(self, method, url, **kwargs):
     return patched_urlopen_error(
-        method, url, code=httplib.UNAUTHORIZED,
+        method, url, code=http.client.UNAUTHORIZED,
         message='Not authorized', **kwargs)
 
 
 def patched_urlopen_403(self, method, url, **kwargs):
     return patched_urlopen_error(
-        method, url, code=httplib.FORBIDDEN,
+        method, url, code=http.client.FORBIDDEN,
         message='Forbidden', **kwargs)
 
 
 def patched_urlopen_404(self, method, url, **kwargs):
     return patched_urlopen_error(
-        method, url, code=httplib.NOT_FOUND,
+        method, url, code=http.client.NOT_FOUND,
         message='Not found', **kwargs)
 
 
 def patched_urlopen_500(self, method, url, **kwargs):
     return patched_urlopen_error(
-        method, url, code=httplib.INTERNAL_SERVER_ERROR,
+        method, url, code=http.client.INTERNAL_SERVER_ERROR,
         message='Internal server error', **kwargs)
 
 
@@ -205,7 +205,7 @@ def test_client_read():
         client.read(url=test_url, format='yaml')
         raise NotJsonException("Client.read() doesn't produce error on "
                                "yaml format")
-    except NotJsonException, e:
+    except NotJsonException as e:
         raise e
     except Exception:
         pass
@@ -222,51 +222,51 @@ def test_client_read():
                "incorrect json response: {0}".format(result))
     except IncorrectJsonResponseError:
         pass
-    except Exception, e:
+    except Exception as e:
         assert 0, "Incorrect exception raised for 200 code " \
             "and incorrect json response: " + str(e)
 
     # Test get, 400 error
     try:
         result = client_read_400(client=client, url=test_url)
-    except HTTP400BadRequestError, e:
+    except HTTP400BadRequestError:
         pass
-    except Exception, e:
+    except Exception as e:
         assert 0, "Incorrect exception raised for 400 code: " + str(e)
 
     # Test get, 401 error
     try:
         result = client_read_401(client=client, url=test_url)
-    except HTTP401UnauthorizedError, e:
+    except HTTP401UnauthorizedError:
         pass
-    except Exception, e:
+    except Exception as e:
         assert 0, "Incorrect exception raised for 401 code: " + str(e)
 
     # Test get, 403 error
     try:
         result = client_read_403(client=client, url=test_url)
-    except HTTP403ForbiddenError, e:
+    except HTTP403ForbiddenError:
         pass
-    except Exception, e:
+    except Exception as e:
         assert 0, "Incorrect exception raised for 403 code: " + str(e)
 
     # Test get, 404 error
     try:
         result = client_read_404(client=client, url=test_url)
-    except HTTP404NotFoundError, e:
+    except HTTP404NotFoundError:
         pass
-    except Exception, e:
+    except Exception as e:
         assert 0, "Incorrect exception raised for 404 code: " + str(e)
 
     # Test get, 500 error
     try:
         result = client_read_500(client=client, url=test_url)
-    except urllib2.HTTPError, e:
-        if e.code == httplib.INTERNAL_SERVER_ERROR:
+    except urllib3.exceptions.HTTPError as e:
+        if e.args[1] == http.client.INTERNAL_SERVER_ERROR:
             pass
         else:
             assert 0, "Incorrect exception raised for 500 code: " + str(e)
-    except Exception, e:
+    except Exception as e:
         assert 0, "Incorrect exception raised for 500 code: " + str(e)
 
 
@@ -731,7 +731,7 @@ job_data2 = {
 
 
 def patched_urlopen_job_data_parameters2(self, method, url, **kwargs):
-    post_dict = urlparse.parse_qs(kwargs.get('body'))
+    post_dict = parse_qs(kwargs.get('body'))
     post_dict.pop('oauth_timestamp')
     post_dict.pop('oauth_signature')
     post_dict.pop('oauth_nonce')
@@ -754,7 +754,7 @@ def patched_urlopen_job_data_parameters2(self, method, url, **kwargs):
 
 
 def patched_urlopen_job_data_parameters(self, method, url, **kwargs):
-    post_dict = urlparse.parse_qs(kwargs.get('body'))
+    post_dict = parse_qs(kwargs.get('body'))
     post_dict.pop('oauth_timestamp')
     post_dict.pop('oauth_signature')
     post_dict.pop('oauth_nonce')
@@ -1315,17 +1315,21 @@ def patched_httplib2_request(*args, **kwargs):
 @patch('httplib2.Http.request', patched_httplib2_request)
 def test_oauth_get_request_token():
     oa = setup_oauth()
-    assert oa.get_request_token() == ('709d434e6b37a25c50e95b0e57d24c46',\
-                                    '193ef27f57ab4e37')
+    assert oa.get_request_token() == ('709d434e6b37a25c50e95b0e57d24c46', '193ef27f57ab4e37')
 
 
 @patch('httplib2.Http.request', patched_httplib2_request)
 def test_oauth_get_authorize_url():
     oa = setup_oauth()
-    assert oa.get_authorize_url() ==\
-        'https://www.upwork.com/services/api/auth?oauth_token=709d434e6b37a25c50e95b0e57d24c46'
-    assert oa.get_authorize_url('http://example.com/oauth/complete') ==\
-        'https://www.upwork.com/services/api/auth?oauth_token=709d434e6b37a25c50e95b0e57d24c46&oauth_callback=http%3A%2F%2Fexample.com%2Foauth%2Fcomplete'
+    auth_url = oa.get_authorize_url()
+    assert 'oauth_token=709d434e6b37a25c50e95b0e57d24c46' in auth_url
+    assert auth_url.split('?')[0] == 'https://www.upwork.com/services/api/auth'
+
+    auth_url = oa.get_authorize_url('http://example.com/oauth/complete')
+    assert 'oauth_token=709d434e6b37a25c50e95b0e57d24c46' in auth_url
+    assert 'oauth_callback=http%3A%2F%2Fexample.com%2Foauth%2Fcomplete' in auth_url
+    assert auth_url.split('?')[0] == 'https://www.upwork.com/services/api/auth'
+
 
 def patched_httplib2_access(*args, **kwargs):
     return {'status': '200'},\
@@ -1441,17 +1445,17 @@ def test_single_job_profile():
     try:
         job.get_job_profile({})
         raise Exception('Request should raise ValueError exception.')
-    except ValueError, e:
+    except ValueError as e:
         assert 'Invalid job key' in str(e)
     try:
         job.get_job_profile(['~~{0}'.format(x) for x in range(21)])
         raise Exception('Request should raise ValueError exception.')
-    except ValueError, e:
+    except ValueError as e:
         assert 'Number of keys per request is limited' in str(e)
     try:
         job.get_job_profile(['~~111111', 123456])
         raise Exception('Request should raise ValueError exception.')
-    except ValueError, e:
+    except ValueError as e:
         assert 'List should contain only job keys not recno' in str(e)
 
     # Get single job profile test
