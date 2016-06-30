@@ -2,7 +2,6 @@
 # python-upwork
 # (C) 2010-2016 Upwork
 
-import urllib
 
 from upwork.namespaces import Namespace
 
@@ -22,7 +21,7 @@ class Messages(Namespace):
 
         """
         url = '{0}/rooms'.format(company)
-	result = self.get(url, data=params)
+        result = self.get(url, data=params)
         return result.get(url, result)
 
     def get_room_details(self, company, room_id, params = {}):
@@ -38,7 +37,7 @@ class Messages(Namespace):
 
         """
         url = '{0}/rooms/{1}'.format(company, room_id)
-	result = self.get(url, data=params)
+        result = self.get(url, data=params)
         return result.get(url, result)
 
     def get_room_by_offer(self, company, offer_id, params = {}):
@@ -54,7 +53,7 @@ class Messages(Namespace):
 
         """
         url = '{0}/rooms/offers/{1}'.format(company, offer_id)
-	result = self.get(url, data=params)
+        result = self.get(url, data=params)
         return result.get(url, result)
 
     def get_room_by_application(self, company, application_id, params = {}):
@@ -70,7 +69,7 @@ class Messages(Namespace):
 
         """
         url = '{0}/rooms/applications/{1}'.format(company, application_id)
-	result = self.get(url, data=params)
+        result = self.get(url, data=params)
         return result.get(url, result)
 
     def get_room_by_contract(self, company, contract_id, params = {}):
@@ -86,7 +85,7 @@ class Messages(Namespace):
 
         """
         url = '{0}/rooms/contracts/{1}'.format(company, contract_id)
-	result = self.get(url, data=params)
+        result = self.get(url, data=params)
         return result.get(url, result)
 
     def create_room(self, company, params = {}):
@@ -100,7 +99,7 @@ class Messages(Namespace):
 
         """
         url = '{0}/rooms'.format(company)
-	result = self.get(url, data=params)
+        result = self.get(url, data=params)
         return result.get(url, result)
 
     def send_message_to_room(self, company, room_id, params = {}):
@@ -116,7 +115,7 @@ class Messages(Namespace):
 
         """
         url = '{0}/rooms/{1}/stories'.format(company, room_id)
-	result = self.get(url, data=params)
+        result = self.get(url, data=params)
         return result.get(url, result)
 
     def update_room_settings(self, company, room_id, username, params = {}):
@@ -132,7 +131,7 @@ class Messages(Namespace):
 
         """
         url = '{0}/rooms/{1}/users/{2}'.format(company, room_id, username)
-	result = self.get(url, data=params)
+        result = self.get(url, data=params)
         return result.get(url, result)
 
     def update_room_metadata(self, company, room_id, params = {}):
@@ -142,11 +141,11 @@ class Messages(Namespace):
         *Parameters:*
           :company:          Company ID
 
-	  :room_id:	     Room ID
+      :room_id:	     Room ID
 
-	  :params:	     List of parameters
+      :params:	     List of parameters
 
         """
         url = '{0}/rooms/{1}'.format(company, room_id)
-	result = self.get(url, data=params)
+        result = self.get(url, data=params)
         return result.get(url, result)
