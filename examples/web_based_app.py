@@ -18,6 +18,8 @@ def web_based_app():
     client = upwork.Client(public_key, secret_key)
 
     print("Please to this URL (authorize the app if necessary):")
+    import ipdb;
+    ipdb.set_trace()
     print(client.auth.get_authorize_url())
     print("After that you should be redirected back to your app URL with " + \
           "additional ?oauth_verifier= parameter")

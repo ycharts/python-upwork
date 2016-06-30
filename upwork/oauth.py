@@ -88,8 +88,8 @@ class OAuth(Namespace):
         response, content = client.request(self.request_token_url, 'POST')
         if response.get('status') != '200':
             raise Exception(
-                "Invalid request token response: {0}.".format(content))
-        request_token = dict(parse_qsl(content))
+                'Invalid request token response: {0}.'.format(content))
+        request_token = dict(parse_qsl(content.decode('UTF-8')))
         self.request_token = request_token.get('oauth_token')
         self.request_token_secret = request_token.get('oauth_token_secret')
         return self.request_token, self.request_token_secret
@@ -101,7 +101,7 @@ class OAuth(Namespace):
         oauth_token = getattr(self, 'request_token', None) or\
             self.get_request_token()[0]
         if callback_url:
-            params = urlencode({'oauth_token': oauth_token,\
+            params = urlencode({'oauth_token': oauth_token,
                 'oauth_callback': callback_url})
         else:
             params = urlencode({'oauth_token': oauth_token})
@@ -117,24 +117,23 @@ class OAuth(Namespace):
         except AttributeError as e:
             logger = logging.getLogger('python-upwork')
             logger.debug(e)
-            raise Exception("At first you need to call get_authorize_url")
+            raise Exception('At first you need to call get_authorize_url')
         token = oauth.Token(request_token, request_token_secret)
         token.set_verifier(verifier)
         client = oauth.Client(self.get_oauth_consumer(), token)
         response, content = client.request(self.access_token_url, 'POST')
         if response.get('status') != '200':
             raise Exception(
-                "Invalid access token response: {0}.".format(content))
-        access_token = dict(parse_qsl(content))
+                'Invalid access token response: {0}.'.format(content))
+        access_token = dict(parse_qsl(content.decode('UTF-8')))
         self.access_token = access_token.get('oauth_token')
         self.access_token_secret = access_token.get('oauth_token_secret')
         return self.access_token, self.access_token_secret
 
     def get_info(self):
         """
-        Get a detailed info about current authnticated user \
+        Get a detailed info about current authenticated user
         and some data from his profile.
-
         """
         url = 'info'
         result = self.get(url)
