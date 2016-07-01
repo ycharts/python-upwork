@@ -86,10 +86,11 @@ class OAuth(Namespace):
         """
         client = oauth.Client(self.get_oauth_consumer())
         response, content = client.request(self.request_token_url, 'POST')
+        content = content.decode('UTF-8')
         if response.get('status') != '200':
             raise Exception(
                 'Invalid request token response: {0}.'.format(content))
-        request_token = dict(parse_qsl(content.decode('UTF-8')))
+        request_token = dict(parse_qsl(content))
         self.request_token = request_token.get('oauth_token')
         self.request_token_secret = request_token.get('oauth_token_secret')
         return self.request_token, self.request_token_secret
@@ -122,10 +123,11 @@ class OAuth(Namespace):
         token.set_verifier(verifier)
         client = oauth.Client(self.get_oauth_consumer(), token)
         response, content = client.request(self.access_token_url, 'POST')
+        content = content.decode('UTF-8')
         if response.get('status') != '200':
             raise Exception(
                 'Invalid access token response: {0}.'.format(content))
-        access_token = dict(parse_qsl(content.decode('UTF-8')))
+        access_token = dict(parse_qsl(content))
         self.access_token = access_token.get('oauth_token')
         self.access_token_secret = access_token.get('oauth_token_secret')
         return self.access_token, self.access_token_secret
